@@ -1,0 +1,40 @@
+# ~/.zshrc for the DevSecOps Lab VM
+
+# Keep the zsh new-user wizard from showing up on first login
+HISTFILE=~/.zsh_history
+HISTSIZE=5000
+SAVEHIST=5000
+setopt APPEND_HISTORY SHARE_HISTORY HIST_IGNORE_DUPS
+
+# Prompt: user@host path $
+PROMPT='%F{green}%n@%m%f %F{blue}%~%f %# '
+
+export TERM=xterm-256color
+
+# Course tools and OpenRouter key (same as ~/.bashrc written by setup-course.sh)
+export PATH="$HOME/.local/bin:$PATH"
+[ -f "$HOME/.config/ai-coding/env" ] && . "$HOME/.config/ai-coding/env"
+
+# Animated banner: a 256-color gradient that shimmers once per login session.
+# Only for interactive login shells; nested shells and tmux panes skip it.
+_dl_banner() {
+  local -a grad lines
+  local frame i total c
+  grad=(51 45 39 33 27 21 27 33 39 45)
+  lines=("${(@f)$(<~/.config/ai-coding/banner.txt)}")
+  total=${#lines}
+  for frame in {0..15}; do
+    (( frame > 0 )) && printf '\e[%dA' $total
+    for (( i = 1; i <= total; i++ )); do
+      c=${grad[$(( (i + frame) % ${#grad} + 1 ))]}
+      printf '\e[1;38;5;%dm%s\e[0m\n' $c "${lines[i]}"
+    done
+    sleep 0.06
+  done
+  printf '\n'
+}
+
+if [[ -o login && -t 1 && -z ${DL_BANNER_SHOWN:-} && -r ~/.config/ai-coding/banner.txt ]]; then
+  export DL_BANNER_SHOWN=1
+  _dl_banner
+fi
